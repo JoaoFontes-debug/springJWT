@@ -1,6 +1,11 @@
 package com.example.jwtTest.security;
 
-import java.security.Signature;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.util.Date;
+
 
 public class JwtUtil {
     @Value("${jwt.secret}")
@@ -11,21 +16,29 @@ public class JwtUtil {
     
     //metodo para gerar token
     public String generatedToken(String username){
-        return jwsts.builder()
-        .setSubject(username)
-        .setIssuedAt(new Date())
-        .setExpiration((new Date(System.currentTimeMillis() + expirationTime)))
-        .signWith(SignatureAlgorithm.HS256, secret)
+        return Jwts.builder()
+        .setSubject(username)//conteudo
+        .setIssuedAt(new Date()) //momento que é gerado
+        .setExpiration((new Date(System.currentTimeMillis() + expirationTime))) //expiração
+        .signWith(SignatureAlgorithm.HS256, secret) //
         .compact();
 
     }
 
+    public String getUserNameFromtoken(String token){
+        return Jwts.parser()
+                .setSigningKey(secret)
+                .parseClaimsJws(token)
+                .getBody()//payload
+                .getSubject();//conteudo
+    }
+
     public boolean isTokenValid(String token){
         try {
-            jwts.parser().setSigningKey(secret).parseClaimsJws((token));
+            Jwts.parser().setSigningKey(secret).parseClaimsJws((token));
             return true;
-        } catch (Exception e) {
-            // TODO: handle exception
+        } catch (Exception error) {
+           return  false;
         }
     }
 
